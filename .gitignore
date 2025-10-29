@@ -1,0 +1,38 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+*.pyc
+
+# Environment variables
+.env
+
+# Database files
+*.sqlite3
+
+# VSCode settings
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# Static and media (optional)
+staticfiles/
+media/
+
+# OS-specific
+.DS_Store
+Thumbs.db
