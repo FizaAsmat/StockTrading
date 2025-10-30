@@ -1,5 +1,7 @@
 __pycache__/
 *.py[cod]
+celerybeat-schedule.db
+celerybeat-schedule
 *.pyo
 *.pyd
 *.so
@@ -18,6 +20,7 @@ ENV/
 
 # Database files
 *.sqlite3
+
 
 # VSCode settings
 .vscode/

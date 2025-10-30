@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 # Load environment variables from .env file
 load_dotenv()
@@ -42,6 +43,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'Trading',
+    'users',
+    'Stocks',
+    'Wallet',
 ]
 
 MIDDLEWARE = [
@@ -79,8 +85,8 @@ WSGI_APPLICATION = 'StockTrading.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('django.db.backends.postgresql'),
-        'NAME': os.getenv('stocktrading'),
+        'ENGINE':'django.db.backends.postgresql',
+        'NAME': os.getenv('stocktrading_db'),
         'USER': os.getenv('stock_user'),
         'PASSWORD': os.getenv('trading123pass'),
         'HOST': os.getenv('localhost'),
@@ -88,6 +94,11 @@ DATABASES = {
     }
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -125,6 +136,14 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+CELERY_BEAT_SCHEDULE = {
+    'fetch-us-stock-data-every-hour': {
+        'task': 'stocks.tasks.fetch_us_stock_data',
+        'schedule': crontab(minute=0, hour='*/1'),  # every hour
+    },
+}
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -136,3 +155,5 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {}

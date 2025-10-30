@@ -1,12 +1,12 @@
 from django.db import models
-from rest_framework.authtoken.admin import User
-
+from django.contrib.auth.models import User
+from Stocks.models import Stock
 
 # Create your models here.
 class Wallets(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     balance = models.FloatField()
-    Currency = models.CharField(max_length=10)
+    currency = models.CharField(max_length=10)
     updated_at=models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -26,10 +26,47 @@ class TransactionStatus(models.TextChoices):
     FAILED = 'Failed','Failed'
 
 
+class TransactionQuerySet(models.QuerySet):
+    def deposit(self):
+        return self.filter(type=TransactionType.DEPOSIT)
+
+    def withdraw(self):
+        return self.filter(type=TransactionType.WITHDRAW)
+
+    def trades(self):
+        return self.filter(type__in=[TransactionType.BUY,TransactionType.SELL])
+
+    def completed(self):
+        return self.filter(status=TransactionStatus.COMPLETED)
+
+    def pending(self):
+        return self.filter(status=TransactionStatus.PENDING)
+
+
+class TransactionManager(models.Manager):
+    def get_queryset(self):
+        return TransactionQuerySet(self.model, using=self._db)
+
+    def deposit(self):
+        return self.get_queryset().deposit()
+
+    def withdraw(self):
+        return self.get_queryset().withdraw()
+
+    def trades(self):
+        return self.get_queryset().trades()
+
+    def completed(self):
+        return self.get_queryset().completed()
+
+    def pending(self):
+        return self.get_queryset().pending()
+
 class Transactions(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE)
     type = models.CharField(max_length=20, choices=TransactionType.choices)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     price_per_unit = models.FloatField()
     status = models.CharField(max_length=20, choices=TransactionStatus.choices, default=TransactionStatus.PENDING)
@@ -37,6 +74,10 @@ class Transactions(models.Model):
     remarks = models.TextField()
     updated_at=models.DateTimeField(auto_now=True)
 
+    objects = TransactionManager()
+
     def __str__(self):
         return self.wallet.user.username
 
+    class Meta:
+        ordering = ['-updated_at']

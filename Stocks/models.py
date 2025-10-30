@@ -1,5 +1,5 @@
 from django.db import models
-from rest_framework.authtoken.admin import User
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Stock(models.Model):
