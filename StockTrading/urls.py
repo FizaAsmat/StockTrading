@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('users.urls')),
     path('wallet/',include('Wallet.urls')),
-    # path('trading/',include('Trading.urls')),
+    path('trading/',include('Trading.urls')),
     # path('stocks/',include('Stocks.urls')),
     # path('portfolios/',include('portfolio.urls')),
 ]

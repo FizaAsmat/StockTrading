@@ -24,7 +24,7 @@ class StockPrice(models.Model):
     volume=models.IntegerField(default=0)
 
     def __str__(self):
-        return self.stock.symbol
+        return f"{self.stock.symbol} @ {self.price}"
 
 
 class StockHistory(models.Model):
