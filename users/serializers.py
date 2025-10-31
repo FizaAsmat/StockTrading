@@ -11,8 +11,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User(
-            username=validated_data('username'),
-            email=validated_data('email'),
+            username=validated_data['username'],
+            email=validated_data['email'],
         )
         user.set_password(validated_data['password'])
         user.is_staff=False
@@ -35,7 +35,7 @@ class UserLoginSerializer(TokenObtainPairSerializer):
 class AdminLoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        if self.user.is_staff:  # ✅ only admin users
+        if self.user.is_staff:  # only admin users
             data['username'] = self.user.username
             data['email'] = self.user.email
             data['role'] = 'admin'

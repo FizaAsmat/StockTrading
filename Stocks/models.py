@@ -10,6 +10,8 @@ class Stock(models.Model):
     currency=models.CharField(max_length=10)
     is_active=models.BooleanField(default=True)
 
+    current_price = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+
     def __str__(self):
         return self.name
 

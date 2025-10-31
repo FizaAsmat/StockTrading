@@ -5,7 +5,7 @@ from Stocks.models import Stock
 # Create your models here.
 class Wallets(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    balance = models.FloatField()
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=10)
     updated_at=models.DateTimeField(auto_now=True)
 
@@ -63,21 +63,21 @@ class TransactionManager(models.Manager):
         return self.get_queryset().pending()
 
 class Transactions(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE)
     type = models.CharField(max_length=20, choices=TransactionType.choices)
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
-    price_per_unit = models.FloatField()
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True, blank=True)
+    quantity = models.IntegerField(null=True, blank=True)
+    price_per_unit = models.FloatField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=TransactionStatus.choices, default=TransactionStatus.PENDING)
     amount = models.FloatField()
-    remarks = models.TextField()
-    updated_at=models.DateTimeField(auto_now=True)
+    remarks = models.TextField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = TransactionManager()
 
     def __str__(self):
-        return self.wallet.user.username
+        return f"{self.user.username} - {self.type} - {self.amount}"
 
     class Meta:
         ordering = ['-updated_at']

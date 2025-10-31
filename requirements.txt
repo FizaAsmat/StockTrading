@@ -5,6 +5,8 @@ python-dotenv>=1.x.x
 psycopg2-binary>=2.9,<3.0
 celery
 redis
+django-redis
 yfinance
 flower
 djangorestframework-simplejwt
+blinker

@@ -9,7 +9,7 @@ class StockSerializer(serializers.ModelSerializer):
 
 
 class StockPriceSerializer(serializers.ModelSerializer):
-    stock = StockSerializer.StringRelatedField()
+    stock = serializers.StringRelatedField()
 
     class Meta:
         model = StockPrice
@@ -17,7 +17,7 @@ class StockPriceSerializer(serializers.ModelSerializer):
 
 
 class StockHistorySerializer(serializers.ModelSerializer):
-    stock = StockSerializer.StringRelatedField()
+    stock = serializers.StringRelatedField()
 
     class Meta:
         model = StockHistory

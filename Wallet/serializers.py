@@ -15,8 +15,15 @@ class DepositSerializer(serializers.ModelSerializer):
     amount=serializers.DecimalField(decimal_places=2,max_digits=10)
     method=serializers.CharField(max_length=20,required=False)
     reference_id=serializers.CharField(max_length=20, required=False)
+    class Meta:
+        model = Transactions
+        fields = ['amount','method','reference_id']
 
 class WithdrawSerializer(serializers.ModelSerializer):
     amount=serializers.DecimalField(decimal_places=2,max_digits=10)
     destination=serializers.CharField(max_length=100)
     note=serializers.CharField(required=False)
+
+    class Meta:
+        model = Transactions
+        fields = ['amount','destination','note']

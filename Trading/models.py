@@ -1,7 +1,7 @@
 from django.db import models
 from users.models import Users
 from Stocks.models import Stock
-from Wallet.models import Transactions
+from Wallet.models import Transactions,Wallets
 
 class TradeType(models.TextChoices):
     BUY='Buy','buy'
