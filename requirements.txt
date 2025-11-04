@@ -10,3 +10,5 @@ yfinance
 flower
 djangorestframework-simplejwt
 blinker
+pytest-django
+pytest-cov

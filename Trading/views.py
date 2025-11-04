@@ -10,6 +10,7 @@ from Stocks.models import Stock
 from Wallet.models import Transactions, Wallets
 from .serializers import TradeSerializer, HoldingSerializer
 
+
 class BuyStockView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -30,24 +31,28 @@ class BuyStockView(APIView):
         live_price = Decimal(stock.current_price)
         total_amount = live_price * quantity
 
-        # Wallet uses Django User
+        # Get wallet and check balance
         wallet = Wallets.objects.get(user=request.user)
         if wallet.balance < total_amount:
             return Response({"error": "Insufficient balance"}, status=status.HTTP_403_FORBIDDEN)
 
+        #  Deduct balance for the purchase
         wallet.balance -= total_amount
-        wallet.save()
+        wallet.save(update_fields=['balance'])
 
-        # Create Transaction
+        #  Create ONE transaction (type='buy')
         transaction = Transactions.objects.create(
             wallet=wallet,
             user=request.user,
             amount=total_amount,
-            type='withdraw',
-            status='completed'
+            type='buy',
+            status='completed',
+            stock=stock,
+            quantity=quantity,
+            price_per_unit=live_price
         )
 
-        # Create Trade
+        #  Create trade record
         trade = Trader.objects.create(
             user=user_obj,
             stock=stock,
@@ -58,7 +63,7 @@ class BuyStockView(APIView):
             total_amount=total_amount
         )
 
-        # Update or create Holding
+        # Update or create holding
         holding, created = Holding.objects.get_or_create(
             user=user_obj,
             stock=stock,
@@ -67,14 +72,14 @@ class BuyStockView(APIView):
                 'average_price': live_price
             }
         )
+
         if not created:
-            # update existing holding
-            new_total_value = holding.quantity * holding.average_price + total_amount
+            new_total_value = (Decimal(holding.quantity) * Decimal(holding.average_price)) + total_amount
             holding.quantity += quantity
             holding.average_price = new_total_value / holding.quantity
-            holding.save()
+            holding.save(update_fields=['quantity', 'average_price'])
 
-        # Clear cache
+        # Clear holdings cache
         cache.delete(f"user_{user_obj.id}_holdings")
 
         return Response(TradeSerializer(trade).data, status=status.HTTP_200_OK)
@@ -95,34 +100,37 @@ class SellStockView(APIView):
         try:
             stock = Stock.objects.get(symbol=symbol)
         except Stock.DoesNotExist:
-            return Response({"error":"Stock not found"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Stock not found"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             holding = Holding.objects.get(user=user_obj, stock=stock)
         except Holding.DoesNotExist:
-            return Response({"error":"Holding not found"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Holding not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if holding.quantity < quantity:
-            return Response({"error":"Not enough stock to sell"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Not enough stock to sell"}, status=status.HTTP_403_FORBIDDEN)
 
         live_price = Decimal(stock.current_price)
         total_amount = live_price * quantity
 
-        # Update wallet
+        # Update wallet balance (cash inflow)
         wallet = Wallets.objects.get(user=request.user)
         wallet.balance += total_amount
-        wallet.save()
+        wallet.save(update_fields=['balance'])
 
-        # Create transaction
+        # Create ONE transaction (type='sell')
         transaction = Transactions.objects.create(
             wallet=wallet,
             user=request.user,
             amount=total_amount,
-            type='deposit',
-            status='completed'
+            type='sell',  # single record for selling action
+            status='completed',
+            stock=stock,
+            quantity=quantity,
+            price_per_unit=live_price
         )
 
-        # Create trade
+        # Create trade record
         trade = Trader.objects.create(
             user=user_obj,
             stock=stock,
@@ -133,13 +141,14 @@ class SellStockView(APIView):
             total_amount=total_amount
         )
 
-        # Update holding
+        # Update holdings
         holding.quantity -= quantity
         if holding.quantity == 0:
             holding.delete()
         else:
-            holding.save()
+            holding.save(update_fields=['quantity'])
 
+        # Clear cache for holdings
         cache.delete(f"user_{user_obj.id}_holdings")
 
         return Response(TradeSerializer(trade).data, status=status.HTTP_200_OK)
@@ -147,15 +156,23 @@ class SellStockView(APIView):
 
 class HoldingView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    serializer_class = HoldingSerializer
 
-    def get(self, request):
+    def get_queryset(self):
+        """Return holdings for the authenticated user"""
+        user_obj = Users.objects.get(user=self.request.user)
+        return Holding.objects.filter(user=user_obj)
+
+    def list(self, request, *args, **kwargs):
+        """Handle GET /trading/holdings/"""
         user_obj = Users.objects.get(user=request.user)
         cache_key = f"user_{user_obj.id}_holdings"
         cache_data = cache.get(cache_key)
-        if cache_data:
-            return Response(cache_data)
 
-        holdings = Holding.objects.filter(user=user_obj)
+        if cache_data:
+            return Response(cache_data, status=status.HTTP_200_OK)
+
+        holdings = self.get_queryset()
         serializer = HoldingSerializer(holdings, many=True)
         cache.set(cache_key, serializer.data)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -3,6 +3,7 @@ from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from django.db import transaction
 from django.core.cache import cache
+from decimal import Decimal
 from .serializers import (
     WalletSerializer,
     WithdrawSerializer,
@@ -95,7 +96,7 @@ class DepositView(generics.CreateAPIView):
             )
 
             # Update wallet balance
-            wallet.balance += float(amount)
+            wallet.balance += Decimal(amount)
             wallet.save(update_fields=["balance", "updated_at"])
             tx.status = TransactionStatus.COMPLETED
             tx.save(update_fields=["status"])
@@ -148,7 +149,7 @@ class WithdrawView(generics.CreateAPIView):
             )
 
             # Deduct from wallet
-            wallet.balance -= float(amount)
+            wallet.balance -= Decimal(amount)
             wallet.save(update_fields=["balance", "updated_at"])
             tx.status = TransactionStatus.COMPLETED
             tx.save(update_fields=["status"])

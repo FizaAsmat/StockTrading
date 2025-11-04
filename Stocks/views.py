@@ -84,7 +84,7 @@ class StockHistoryView(APIView):
             return Response(json.loads(cached_data))
 
         stock = get_object_or_404(Stock, symbol=symbol)
-        history = StockPrice.objects.filter(stock=stock).order_by('-created_at')[:30]
+        history = StockPrice.objects.filter(stock=stock).order_by('-timestamp')[:30]
         serializer = StockPriceSerializer(history, many=True)
 
         r.setex(cache_key, 300, json.dumps(serializer.data))
