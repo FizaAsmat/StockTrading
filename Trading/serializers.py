@@ -4,6 +4,9 @@ from Stocks.models import Stock
 from Wallet.models import Transactions
 
 class TradeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Trade model
+    """
     stock_symbol=serializers.CharField(source='stock.symbol',read_only=True)
 
     class Meta:
@@ -12,6 +15,9 @@ class TradeSerializer(serializers.ModelSerializer):
 
 
 class HoldingSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Holding model
+    """
     stock_symbol=serializers.CharField(source='stock.symbol',read_only=True)
     current_value = serializers.SerializerMethodField()
 

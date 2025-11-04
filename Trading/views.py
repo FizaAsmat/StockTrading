@@ -12,6 +12,9 @@ from .serializers import TradeSerializer, HoldingSerializer
 
 
 class BuyStockView(APIView):
+    """
+    View to buy stock
+    """
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
@@ -86,6 +89,9 @@ class BuyStockView(APIView):
 
 
 class SellStockView(APIView):
+    """
+    View for selling stock
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -155,6 +161,9 @@ class SellStockView(APIView):
 
 
 class HoldingView(viewsets.ModelViewSet):
+    """
+    View for Holding model
+    """
     permission_classes = [IsAuthenticated]
     serializer_class = HoldingSerializer
 
